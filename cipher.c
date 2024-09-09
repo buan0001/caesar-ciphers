@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <locale.h>
+#include <wchar.h>
 #include "cipher.h"
 
-char alphabet[255] = "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ";
+char alphabet[29][4] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Æ", "Ø", "Å"};
+// wchar_t alphabet[255] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ";
 // char alphabet[255] = "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ";
+// char alphabet[40] = {'A','B','C','D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U','V','W','X','Y','Z', 'Æ', 'Ø', 'Å'};
 int length = sizeof(alphabet) / sizeof(alphabet[0]);
 int entries;
-// char alphabet[40] = {'A','B','C','D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U','V','W','X','Y','Z', 'Æ', 'Ø', 'Å'};
 
 int get_size()
 {
@@ -17,7 +20,8 @@ int get_size()
         printf("End of array reached at index: %d\n", i);
         break;
         }
-        // printf("Value at index %d: %c\n", i, alphabet[i]);
+        printf("Value at index %d: %c\n", i, alphabet[i]);
+        printf("Adress of index %d: %p\n", i, &alphabet[i]);
         count++;
     }
     return count;
@@ -33,6 +37,7 @@ int letter_to_number(char letter)
             break;
         }
         else{
+  
             if (upper == alphabet[i]) {
                 return i;
             }
@@ -71,6 +76,7 @@ int shift(int number, int shift_value, int direction)
 }
 
 void encrypt(char* text, int shift_value)
+// void encrypt(wchar_t* text, int shift_value)
 {
     for (int i = 0; i < 255; i++)
     {
@@ -88,6 +94,7 @@ void encrypt(char* text, int shift_value)
 }
 
 void decrypt(char* text, int shift_value)
+// void decrypt(wchar_t* text, int shift_value)
 {
     for (int i = 0; i < 255; i++)
     {
@@ -126,11 +133,16 @@ int indexOf(char letter)
 
 int main()
 {
+    setlocale(LC_ALL, "");
     entries = get_size();
     printf("Entries are: %d\n", entries);
-    char test_string[] = "ABC";
+    char test_string[] = "abc";
+    // wchar_t test_string[255] = L"æøå";
     printf("pre encrypt: %s\n", test_string);
     encrypt(test_string, 40);
+    // wprintf(L"pre encrypt: %ls\n", test_string);
+    // wprintf(L"post encrypt: %ls\n", test_string);
+    // wprintf(L"post decrypt: %ls\n", test_string);
     printf("post encrypt: %s\n", test_string);
     decrypt(test_string, 40);
     printf("post decrypt: %s\n", test_string);
