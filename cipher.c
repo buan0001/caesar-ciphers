@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <ctype.h>
-#include <locale.h>
-#include <wchar.h>
 #include "cipher.h"
 
-char alphabet[29][4] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Æ", "Ø", "Å"};
+// Leftovers from trying to make ÆØÅ work
+// char alphabet[29][4] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Æ", "Ø", "Å"};
 // wchar_t alphabet[255] = L"ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ";
-// char alphabet[255] = "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ";
 // char alphabet[40] = {'A','B','C','D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U','V','W','X','Y','Z', 'Æ', 'Ø', 'Å'};
+
+// Alphabet that gave up on ÆØÅ
+char alphabet[26] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 int length = sizeof(alphabet) / sizeof(alphabet[0]);
-int entries;
+// int entries;
 
 int get_size()
 {
@@ -17,11 +18,11 @@ int get_size()
     for (int i = 0; i < length; i++)
     {
         if (!alphabet[i]) {
-        printf("End of array reached at index: %d\n", i);
+        // printf("End of array reached at index: %d\n", i);
         break;
         }
-        printf("Value at index %d: %c\n", i, alphabet[i]);
-        printf("Adress of index %d: %p\n", i, &alphabet[i]);
+        // printf("Value at index %d: %c\n", i, alphabet[i]);
+        // printf("Adress of index %d: %p\n", i, &alphabet[i]);
         count++;
     }
     return count;
@@ -33,11 +34,10 @@ int letter_to_number(char letter)
     for (int i = 0; i < length; i++)
     {
         if (!alphabet[i]) {
-            printf("End of array reached at index: %d\n", i);
+            // printf("End of array reached at index: %d\n", i);
             break;
         }
         else{
-  
             if (upper == alphabet[i]) {
                 return i;
             }
@@ -57,55 +57,73 @@ char number_to_letter(int number)
 
 int shift(int number, int shift_value, int direction)
 {
-    printf("Number: %d. Shift value: %d\n", number, shift_value);
+
+    
+    // printf("Number: %d. Shift value: %d\n", number, shift_value);
     int new_number;
+    int iterations = 0;
     if (direction > 0) {
-        new_number = number + shift_value;
-        if (new_number > entries -1) {
-            new_number = new_number - entries;
-        }
+        return (number + shift_value + 26) % 26;
     }
     else {
         new_number = number - shift_value;
-        if (new_number < 0) {
-            new_number = new_number + entries;
+        while (new_number < 0) {
+            iterations++;
+            // printf("Number too low: %d\n", new_number);
+            new_number += length;
+            if (iterations > 30) {
+                printf("Too many iterations, breaking out of shift\n");
+                return -1;
+            }
         }
     }
-
+    printf("Shifted number: %d\n", new_number);
     return new_number;
 }
 
 void encrypt(char* text, int shift_value)
-// void encrypt(wchar_t* text, int shift_value)
 {
-    for (int i = 0; i < 255; i++)
+    for (int i = 0; i < length; i++)
     {
         if (!text[i]) {
-            printf("End of array reached at index: %d\n", i);
+            // printf("End of array reached at index: %d\n", i);
             break;
         }
         else {
+            // printf("letter to number\n");
             int numbered_letter = letter_to_number( text[i] );
+            if (numbered_letter == -1) {
+                text[i] = ' ';
+            }
+            else {
+            // printf("shifted number\n");
             int shifted_number = shift( numbered_letter, shift_value, 1 );
+            // printf("number to letter\n");
             text[i] = number_to_letter( shifted_number );
+            }
         }
     }
+    // printf("done encrypting\n");
     
 }
 
 void decrypt(char* text, int shift_value)
-// void decrypt(wchar_t* text, int shift_value)
 {
-    for (int i = 0; i < 255; i++)
+    for (int i = 0; i < length; i++)
     {
         if (!text[i]) {
-            printf("End of array reached at index: %d\n", i);
+            // printf("End of array reached at index: %d\n", i);
             break;
         }
         else {
             int numbered_letter = letter_to_number(text[i]);
-            int shifted_number = shift( numbered_letter, shift_value, -1 );
-            text[i] = number_to_letter(shifted_number);
+            if (numbered_letter == -1) {
+                text[i] = ' ';
+            }
+            else {
+                int shifted_number = shift( numbered_letter, shift_value, -1 );
+                text[i] = number_to_letter(shifted_number);
+            }
         }
     }
     
@@ -117,7 +135,7 @@ int indexOf(char letter)
     for (int i = 0; i < length; i++)
     {
         if (!alphabet[i]) {
-            printf("End of array reached at index: %d\n", i);
+            // printf("End of array reached at index: %d\n", i);
             break;
         }
         else{
@@ -131,25 +149,16 @@ int indexOf(char letter)
     
 }
 
-int main()
-{
-    setlocale(LC_ALL, "");
-    entries = get_size();
-    printf("Entries are: %d\n", entries);
-    char test_string[] = "abc";
-    // wchar_t test_string[255] = L"æøå";
-    printf("pre encrypt: %s\n", test_string);
-    encrypt(test_string, 40);
-    // wprintf(L"pre encrypt: %ls\n", test_string);
-    // wprintf(L"post encrypt: %ls\n", test_string);
-    // wprintf(L"post decrypt: %ls\n", test_string);
-    printf("post encrypt: %s\n", test_string);
-    decrypt(test_string, 40);
-    printf("post decrypt: %s\n", test_string);
-    // printf("Å is: %c\n", alphabet[entries-2]);
-    // char result1 = number_to_letter(54);
-    // int result2 = letter_to_number('f');
-    // printf("number_to_letter: %c\n", result1);
-    // printf("letter_to_number: %d\n", result2);
-    return 0;
-}
+// int main()
+// {
+//     entries = get_size();
+//     printf("Entries are: %d\n", entries);
+// //     char test_string[] = "abc";
+//     printf("pre encrypt: %s\n", test_string);
+// //     encrypt(test_string, 14);
+//     printf("post encrypt: %s\n", test_string);
+// //     decrypt(test_string, 14);
+//     printf("post decrypt: %s\n", test_string);
+//     return 0;
+//     // OPQ
+// }
